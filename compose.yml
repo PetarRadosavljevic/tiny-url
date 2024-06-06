@@ -1,0 +1,57 @@
+name: tiny-url
+services:
+  server:
+    container_name: tiny-url-api
+    build:
+      context: ./tiny-url-api
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/app
+      - server_node_modules:/app/node_modules
+    depends_on:
+      - mongo
+    ports:
+      - '4000:4000'
+    env_file:
+      - ./tiny-url-api/.env
+    networks:
+      - main
+  client:
+    container_name: tiny-url-client
+    build:
+      context: ./tiny-url-client
+      dockerfile: ./Dockerfile
+    volumes:
+      - .:/app
+    depends_on:
+      - server
+    ports:
+      - '8000:80'
+    env_file:
+      - ./tiny-url-client/.env
+    networks:
+      - main
+  mongo:
+    container_name: tiny-mongo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: tiny
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_NON_ROOT_USERNAME: tinyuser
+      MONGO_NON_ROOT_PASSWORD: tinypass
+    networks:
+      - main
+networks:
+  main:
+    driver: bridge
+volumes:
+  mongodata:
+  server_node_modules:
